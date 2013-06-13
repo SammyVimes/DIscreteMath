@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
+import android.support.v4.app.FragmentActivity;
+import android.text.InputType;
 import android.view.Display;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
@@ -24,12 +25,13 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity implements OnClickListener{
+public class MainActivity extends FragmentActivity implements OnClickListener{
 	ListView lv;
 	TableLayout table;
 	int rowCount = 0;
 	int curTab = 0;
 	ArrayList<EditText> editableTextViews = new ArrayList<EditText>();
+	Button solveChinese;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -41,11 +43,11 @@ public class MainActivity extends Activity implements OnClickListener{
         TabHost.TabSpec tabSpec;
         tabSpec = tabHost.newTabSpec("0");
         tabSpec.setContent(R.id.tab1);
-        tabSpec.setIndicator("1");
+        tabSpec.setIndicator("Диофант");
         tabHost.addTab(tabSpec);
         tabSpec = tabHost.newTabSpec("1");
         tabSpec.setContent(R.id.tab2);
-        tabSpec.setIndicator("2");
+        tabSpec.setIndicator("Китайская теорема");
         tabHost.addTab(tabSpec);
         tabHost.setCurrentTabByTag("0");
         tabHost.setOnTabChangedListener(new OnTabChangeListener(){
@@ -67,63 +69,58 @@ public class MainActivity extends Activity implements OnClickListener{
 		Button refresh = (Button)findViewById(R.id.button2);
 		Button add = (Button)findViewById(R.id.buttonAddRow);
 		Button delete = (Button)findViewById(R.id.buttonDeleteRow);
+		solveChinese = (Button)findViewById(R.id.solveChinese);
 		solve.setOnClickListener(this);
 		add.setOnClickListener(this);
 		delete.setOnClickListener(this);
 		refresh.setOnClickListener(this);
+		solveChinese.setOnClickListener(this);
 		lv = (ListView)findViewById(R.id.listView1);
 		lv.setVisibility(ListView.INVISIBLE);
-		test();
 	}
 	
-	private void test(){
-		ArrayList<String> tmp = new ArrayList<String>();
-		String str = "1";
-		tmp.add(str);
-		str = "31";
-		tmp.add(str);
-		str = "6";
-		tmp.add(str);
-		str = "1";
-		tmp.add(str);
-		str = "34";
-		tmp.add(str);
-		str = "11";
-		tmp.add(str);
-		str = "1";
-		tmp.add(str);
-		str = "13";
-		tmp.add(str);
-		str = "2";
-		tmp.add(str);
-		str = "1";
-		tmp.add(str);
-		str = "19";
-		tmp.add(str);
-		str = "11";
-		tmp.add(str);
-		ChineseEquation ce = new ChineseEquation(tmp);
+	
+	private void solveChinese(){
+		ArrayList<String> equations = getEquationsFromTable();
+		if(equations == null){
+			return;
+		}
+		ChineseEquation ce = new ChineseEquation(equations);
 		ce.solve();
-		ce.getAnswer();
+		String answer = ce.getAnswer();
+		String answerToDisplay = "Решение:\n" + answer;
+		easyDialog(answerToDisplay);
+	}
+	
+	private ArrayList<String> getEquationsFromTable(){
+		ArrayList<String> equations = new ArrayList<String>();
+		int size = editableTextViews.size();
+		for(int i = 0; i < size/3; i++){
+			for(int j = 0; j < 3; j++){
+				EditText et = editableTextViews.get((i * 3) + j);
+				String tmp = et.getText().toString();
+				if(!checkString(tmp)){
+					return null;
+				}
+				equations.add(tmp);
+			}
+		}
+		return equations;
 	}
 	
 	private void addRow(){
 		Display display = getWindowManager().getDefaultDisplay(); 
 		int width = display.getWidth();
 		TableRow rowTitle = new TableRow(this);
-		EditText et = new EditText(this);
 		int etWidth = width/3;
-		et.setWidth(etWidth);
-		editableTextViews.add(et);
-		rowTitle.addView(et);
-		et = new EditText(this);
-		et.setWidth(etWidth);
-		editableTextViews.add(et);
-		rowTitle.addView(et);
-		et = new EditText(this);
-		et.setWidth(etWidth);
-		editableTextViews.add(et);
-		rowTitle.addView(et);
+		EditText et = null;;
+		for(int i = 0; i < 3; i++){
+			et = new EditText(this);
+			et.setWidth(etWidth);
+			et.setInputType(InputType.TYPE_CLASS_DATETIME);
+			editableTextViews.add(et);
+			rowTitle.addView(et);
+		}
 		table.addView(rowTitle);
 		rowCount++;
 	}
@@ -205,14 +202,34 @@ public class MainActivity extends Activity implements OnClickListener{
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.activity_main, menu);
 		return true;
+	}
+	
+	@Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()){
+			case R.id.menu_exit:
+				super.onBackPressed();
+				break;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+	
+	@Override
+	public void onBackPressed() {
+		
 	}
 	
 	public void toaster(String text){
 		Toast toast = Toast.makeText(this, text, Toast.LENGTH_SHORT);
 		toast.show();
+	}
+	
+	private void easyDialog(String message){
+		EasyDialogFragment dialog = new EasyDialogFragment();
+		dialog.setMessage(message);
+		dialog.show(getSupportFragmentManager(), "dlg");
 	}
 
 	@Override
@@ -233,7 +250,11 @@ public class MainActivity extends Activity implements OnClickListener{
 		case R.id.buttonDeleteRow:
 			deleteRow();
 			break;
+		case R.id.solveChinese:
+			solveChinese();
+			break;
 		}
+			
 	}
 
 }
