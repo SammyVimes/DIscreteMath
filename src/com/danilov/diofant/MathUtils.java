@@ -3,6 +3,12 @@ package com.danilov.diofant;
 public class MathUtils {
 	
 	public static int getComparisonByModule(int modifiedX, int module, int equals){
+		if(modifiedX == 0 && equals != 0){
+			return -1;
+		}
+		if(equals == 0){
+			return 0;
+		}
 		int result = 0;
 		boolean flag = true;
 		int i = 0;

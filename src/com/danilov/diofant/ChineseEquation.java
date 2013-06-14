@@ -8,9 +8,10 @@ import android.annotation.SuppressLint;
 @SuppressLint("UseValueOf")
 public class ChineseEquation {
 	
-	ArrayList<ModuleEquation> equations = new ArrayList<ModuleEquation>();
-	HashMap<String, Variable> variables = new HashMap<String, Variable>();
-	int innerVariableCount = 0;
+	private ArrayList<ModuleEquation> equations = new ArrayList<ModuleEquation>();
+	private HashMap<String, Variable> variables = new HashMap<String, Variable>();
+	private int innerVariableCount = 0;
+	private boolean noAnswer = false;
 	
 	public ChineseEquation(ArrayList<String> strings){
 		int len = strings.size() / 3;
@@ -89,24 +90,39 @@ public class ChineseEquation {
 			for(int j = i; j < equations.size(); j++){
 				me = equations.get(j);
 				int prevXCoeff = me.getXCoeff();
-				me.setXCoeff(prevXCoeff*curVariable.coeff);
+				int newXCoeff = prevXCoeff*curVariable.coeff;
+				if(newXCoeff < 0){
+					newXCoeff = MathUtils.getModForNonPositive(newXCoeff, me.module);
+				}
+				if(newXCoeff > 0){
+					newXCoeff = newXCoeff % me.module;
+				}
+				me.setXCoeff(newXCoeff);
 				int equals = me.getEquals() - prevXCoeff*curVariable.freeMember;
 				if(equals < 0){
 					equals = MathUtils.getModForNonPositive(equals, me.module);
+				}
+				if(equals > 0){
+					equals = equals % me.module;
 				}
 				me.setEquals(equals);
 			}
 			innerVariableCount++;
 			me = equations.get(i);
 			int freeMember = MathUtils.getComparisonByModule(me.getXCoeff(), me.getModule(), me.getEquals());
+			if(freeMember == -1){
+				noAnswer = true;
+				break;
+			}
 			curVariable = new Variable("x" + innerVariableCount, me.getModule(), freeMember);
 			variables.put("x" + i, curVariable);
 		}
-		int a = 0;
-		a++;
 	}
 	
 	public String getAnswer(){
+		if(noAnswer){
+			return new String("Нет решений!");
+		}
 		String answer = "";
 		String tmpAnswer = "";
 		int size = variables.size() - 1;

@@ -49,6 +49,10 @@ public class MainActivity extends FragmentActivity implements OnClickListener{
         tabSpec.setContent(R.id.tab2);
         tabSpec.setIndicator("Китайская теорема");
         tabHost.addTab(tabSpec);
+        tabSpec = tabHost.newTabSpec("2");
+        tabSpec.setContent(R.id.tab3);
+        tabSpec.setIndicator("Сравнения");
+        tabHost.addTab(tabSpec);
         tabHost.setCurrentTabByTag("0");
         tabHost.setOnTabChangedListener(new OnTabChangeListener(){
 
@@ -69,14 +73,28 @@ public class MainActivity extends FragmentActivity implements OnClickListener{
 		Button refresh = (Button)findViewById(R.id.button2);
 		Button add = (Button)findViewById(R.id.buttonAddRow);
 		Button delete = (Button)findViewById(R.id.buttonDeleteRow);
-		solveChinese = (Button)findViewById(R.id.solveChinese);
+		Button solveComparison = (Button)findViewById(R.id.buttonSolveComparison);
+		solveChinese = (Button)findViewById(R.id.buttonSolveChinese);
 		solve.setOnClickListener(this);
 		add.setOnClickListener(this);
 		delete.setOnClickListener(this);
 		refresh.setOnClickListener(this);
 		solveChinese.setOnClickListener(this);
+		solveComparison.setOnClickListener(this);
 		lv = (ListView)findViewById(R.id.listView1);
 		lv.setVisibility(ListView.INVISIBLE);
+	}
+	
+	private void solveComparison(){
+		EditText etModifiedX = (EditText)findViewById(R.id.modifiedX);
+		EditText etModule = (EditText)findViewById(R.id.module);
+		EditText etEquals = (EditText)findViewById(R.id.equals);
+		int modifiedX = new Integer(etModifiedX.getText().toString());
+		int module = new Integer(etModule.getText().toString());
+		int equals = new Integer(etEquals.getText().toString());
+		int result = MathUtils.getComparisonByModule(modifiedX, module, equals);
+		String answer = new String("Ответ:\n" + result);
+		easyDialog(answer);
 	}
 	
 	
@@ -192,13 +210,6 @@ public class MainActivity extends FragmentActivity implements OnClickListener{
 		joke();
 	}
 	
-	public void joke(){
-		String[] jokes = {"Спокойствие\nСейчас всё решим", "Надо было готовиться"
-				, "Самому не решить?", "Наверное, ты хочешь себя проверить", "Всё тлен", "Есть многое на свете, друг Горацио..."};
-		int rand = new Random().nextInt(jokes.length);
-		TextView tv = (TextView)findViewById(R.id.textView2);
-		tv.setText(jokes[rand]);
-	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -250,11 +261,22 @@ public class MainActivity extends FragmentActivity implements OnClickListener{
 		case R.id.buttonDeleteRow:
 			deleteRow();
 			break;
-		case R.id.solveChinese:
+		case R.id.buttonSolveChinese:
 			solveChinese();
+			break;
+		case R.id.buttonSolveComparison:
+			solveComparison();
 			break;
 		}
 			
+	}
+	
+	public void joke(){
+		String[] jokes = {"TCP", "Thread.wait()"
+				, "UDP", "Object.notifyAll()", "Есть многое на свете, друг Горацио..."};
+		int rand = new Random().nextInt(jokes.length);
+		TextView tv = (TextView)findViewById(R.id.textView2);
+		tv.setText(jokes[rand]);
 	}
 
 }
